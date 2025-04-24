@@ -1,4 +1,4 @@
-# digit_recognizer.py
+
 import os
 import numpy as np
 import tensorflow as tf
@@ -14,6 +14,11 @@ class MNISTModel:
     def __init__(self, model_path="models/mnist_model.h5"):
         self.model_path = model_path
         self.model = None
+        # Initialize data attributes to avoid AttributeError
+        self.x_train = None
+        self.y_train = None
+        self.x_test = None
+        self.y_test = None
         
     def load_data(self):
         print("Loading MNIST dataset...")
@@ -61,18 +66,24 @@ class MNISTModel:
         print(f"Model trained and saved to {self.model_path}")
         
     def evaluate_model(self):
-        print("Evaluating model...")
-        score = self.model.evaluate(self.x_test, self.y_test, verbose=0)
-        print(f"Test loss: {score[0]}")
-        print(f"Test accuracy: {score[1]}")
+        # Only evaluate if we have test data
+        if self.x_test is not None and self.y_test is not None:
+            print("Evaluating model...")
+            score = self.model.evaluate(self.x_test, self.y_test, verbose=0)
+            print(f"Test loss: {score[0]}")
+            print(f"Test accuracy: {score[1]}")
+        else:
+            print("No test data available for evaluation.")
         
     def load_or_train_model(self, force_train=False):
+        # Always load data for evaluation purposes
+        self.load_data()
+        
         if os.path.exists(self.model_path) and not force_train:
             print(f"Loading existing model from {self.model_path}...")
             self.model = load_model(self.model_path)
             self.evaluate_model()
         else:
-            self.load_data()
             self.create_model()
             self.train_model()
             self.evaluate_model()
